@@ -785,8 +785,8 @@ function rebuildMaps(){
   shelfMap = buildShelfMap();
 }
 
-async function sg(k){ try{ if(window.storage){ const r=await window.storage.get(k); if(r&&r.value) return JSON.parse(r.value);} }catch(e){} return null; }
-async function ss(k,v){ try{ if(window.storage) await window.storage.set(k, JSON.stringify(v)); }catch(e){} }
+async function sg(k){ try{ if(window.storage){ const r=await window.storage.get(k); if(r&&r.value) return JSON.parse(r.value);} else { const v=localStorage.getItem(k); if(v!=null) return JSON.parse(v); } }catch(e){} return null; }
+async function ss(k,v){ try{ if(window.storage){ await window.storage.set(k, JSON.stringify(v)); } else { localStorage.setItem(k, JSON.stringify(v)); } }catch(e){} }
 
 async function load() {
   const c=await sg(SKEY_CART); if(c) cart=c;
