@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>おかいものリスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff5f7;
+    --card: #ffffff;
+    --ink: #5a4a52;
+    --ink-soft: #a8959e;
+    --pink: #ff8fab;
+    --pink-deep: #ff5d8f;
+    --mint: #7fd1c4;
+    --yellow: #ffd56b;
+    --lav: #b8a4e3;
+    --peach: #ffb38a;
+    --blue: #8ec5ff;
+    --green: #a8d672;
+    --line: #ffe3ea;
+    --red: #ff5a6e;
+    --orange: #ff8a4c;
+  }
+  :root { color-scheme: light only; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { background:var(--bg) !important; color:var(--ink); }
+  body {
+    font-family:'Zen Maru Gothic', sans-serif;
+    font-weight:500;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:140px;
+    overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0; z-index:-1;
+    background-color:#fff5f7;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(255,213,107,0.12) 0 18px, transparent 19px),
+      radial-gradient(circle at 88% 30%, rgba(143,209,196,0.13) 0 16px, transparent 17px),
+      radial-gradient(circle at 25% 75%, rgba(184,164,227,0.12) 0 20px, transparent 21px),
+      radial-gradient(circle at 75% 88%, rgba(255,143,171,0.12) 0 16px, transparent 17px);
+    background-size: 240px 240px;
+  }
+
+  .top {
+    position:sticky; top:0; z-index:30;
+    background:rgba(255,245,247,0.92);
+    backdrop-filter:blur(8px);
+    padding:14px 16px 8px;
+    border-bottom:2px dashed var(--line);
+  }
+  .top h1 {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:20px; color:var(--pink-deep);
+    text-align:center; letter-spacing:0.04em;
+    text-shadow:1px 1px 0 #fff, 2px 2px 0 var(--line);
+  }
+  .top h1 .ic { font-size:18px; }
+
+  .total-bar {
+    margin-top:10px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:#fff;
+    border:2px solid var(--yellow);
+    border-radius:18px;
+    padding:8px 14px;
+    box-shadow:0 3px 0 rgba(255,213,107,0.4);
+  }
+  .total-bar .tlabel { font-weight:700; font-size:13px; color:var(--ink-soft); }
+  .total-bar .tyen {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:24px; color:var(--pink-deep); line-height:1;
+  }
+  .total-bar .tyen.bump { animation:bump .4s; }
+  @keyframes bump { 0%{transform:scale(1);} 40%{transform:scale(1.18);} 100%{transform:scale(1);} }
+  .total-bar .tnum { font-size:13px; color:var(--ink-soft); font-weight:700; }
+
+  .useup-alert {
+    margin-top:9px;
+    display:none; align-items:center; gap:8px;
+    background:#fff0eb; border:2px solid var(--orange);
+    border-radius:16px; padding:8px 12px; cursor:pointer;
+    box-shadow:0 3px 0 rgba(255,138,76,0.3);
+  }
+  .useup-alert.show { display:flex; }
+  .useup-alert .ua-ic { font-size:18px; }
+  .useup-alert .ua-tx { flex:1; font-size:12.5px; font-weight:700; color:#c0521f; line-height:1.4; }
+  .useup-alert .ua-tx b { color:var(--red); }
+  .useup-alert .ua-go { font-size:11px; color:#c0521f; font-weight:700; }
+
+  .progress-wrap { margin-top:9px; display:flex; align-items:center; gap:10px; }
+  .progress-bar {
+    flex:1; height:14px; background:#fff;
+    border:2px solid var(--pink); border-radius:20px;
+    overflow:hidden; position:relative;
+    box-shadow:inset 0 1px 3px rgba(255,143,171,0.2);
+  }
+  .progress-fill {
+    height:100%;
+    background:linear-gradient(90deg, var(--yellow), var(--peach), var(--pink));
+    border-radius:20px; width:0%;
+    transition:width 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .progress-txt {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:12px; color:var(--pink-deep);
+    min-width:42px; text-align:right;
+  }
+
+  .tabs { display:flex; gap:7px; overflow-x:auto; padding:14px 16px 4px; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab {
+    flex:0 0 auto; padding:8px 14px; position:relative;
+    background:#fff; border:2px solid var(--line); border-radius:18px;
+    font-weight:700; font-size:13px; color:var(--ink-soft);
+    white-space:nowrap; cursor:pointer;
+    transition:transform .15s, background .15s; box-shadow:0 2px 0 var(--line);
+  }
+  .tab .em { margin-right:3px; }
+  .tab.active { color:#fff; transform:translateY(1px); box-shadow:0 1px 0 rgba(0,0,0,0.1); }
+  .tab.active[data-c="0"]{background:var(--green);border-color:var(--green);}
+  .tab.active[data-c="1"]{background:var(--peach);border-color:var(--peach);}
+  .tab.active[data-c="2"]{background:var(--lav);border-color:var(--lav);}
+  .tab.active[data-c="3"]{background:var(--blue);border-color:var(--blue);}
+  .tab.active[data-c="4"]{background:var(--pink);border-color:var(--pink);}
+  .tab.active[data-c="5"]{background:var(--mint);border-color:var(--mint);}
+  .tab.active[data-c="6"]{background:var(--yellow);border-color:var(--yellow);color:var(--ink);}
+  .tab.active[data-c="7"]{background:var(--pink-deep);border-color:var(--pink-deep);}
+  .tab[data-c="fridge"]{ border-style:dashed; }
+  .tab.active[data-c="fridge"]{background:#6fb3d6;border-color:#6fb3d6;}
+  .tab[data-c="useup"]{ border-style:dashed; }
+  .tab.active[data-c="useup"]{background:var(--orange);border-color:var(--orange);}
+  .tab[data-c="history"]{ border-style:dashed; }
+  .tab.active[data-c="history"]{background:#9a8ec4;border-color:#9a8ec4;}
+  .tab[data-c="manage"]{ border-style:dashed; }
+  .tab.active[data-c="manage"]{background:#7a8a99;border-color:#7a8a99;}
+  .tab[data-c="price"]{ border-style:dashed; }
+  .tab.active[data-c="price"]{background:var(--ink);border-color:var(--ink);}
+  .tab .tbadge {
+    position:absolute; top:-7px; right:-5px;
+    background:var(--red); color:#fff;
+    font-family:'Mochiy Pop One', sans-serif; font-size:10px;
+    min-width:18px; height:18px; border-radius:9px; padding:0 4px;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid #fff;
+  }
+
+  .panel { padding:10px 16px 0; }
+  .midcat { margin-bottom:16px; }
+  .midcat-title {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:13px; color:var(--ink);
+    margin-bottom:8px; display:flex; align-items:center; gap:6px;
+  }
+  .midcat-title::before {
+    content:''; width:8px; height:8px; border-radius:50%;
+    background:var(--pink); display:inline-block;
+  }
+  .chips { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .chip {
+    padding:9px 6px 7px; background:#fff;
+    border:2px solid var(--line); border-radius:16px;
+    font-size:13px; font-weight:700; color:var(--ink);
+    cursor:pointer; position:relative;
+    transition:transform .12s, background .12s, border-color .12s;
+    box-shadow:0 2px 0 var(--line); user-select:none; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:50px; line-height:1.2;
+  }
+  .chip .cprice { font-size:10.5px; color:var(--ink-soft); font-weight:500; margin-top:3px; }
+  .chip:active { transform:scale(.94); }
+  .chip.in-cart { background:var(--pink); color:#fff; border-color:var(--pink-deep); box-shadow:0 2px 0 var(--pink-deep); }
+  .chip.in-cart .cprice { color:rgba(255,255,255,0.85); }
+  .chip.in-cart::after {
+    content:'✓'; font-size:11px; color:#fff;
+    position:absolute; top:-6px; right:-6px;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--pink-deep); border:2px solid #fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,.15);
+  }
+
+  .price-note {
+    background:#fffaf0; border:2px dashed var(--yellow);
+    border-radius:14px; padding:10px 12px; font-size:12px;
+    color:var(--ink); line-height:1.6; margin-bottom:14px;
+  }
+  .price-search {
+    width:100%; padding:10px 14px; font-size:14px;
+    border:2px solid var(--line); border-radius:14px;
+    font-family:'Zen Maru Gothic'; font-weight:700; color:var(--ink);
+    margin-bottom:14px; background:#fffafc;
+  }
+  .price-search:focus { outline:none; border-color:var(--pink); }
+  .price-mid { margin-bottom:14px; }
+  .price-mid-title {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:12px; color:#fff; display:inline-block;
+    padding:3px 12px; border-radius:12px; margin-bottom:8px;
+  }
+  .price-row {
+    display:flex; align-items:center; gap:10px;
+    padding:8px 10px; background:#fff;
+    border:2px solid var(--line); border-radius:14px;
+    margin-bottom:7px; position:relative;
+  }
+  .price-row .pr-name { flex:1; font-size:14px; font-weight:700; }
+  .price-row .pr-yen { font-size:14px; color:var(--ink-soft); font-weight:700; }
+  .price-row input {
+    width:78px; padding:7px 8px; font-size:15px; text-align:right;
+    border:2px solid var(--line); border-radius:10px;
+    font-family:'Zen Maru Gothic'; font-weight:700; color:var(--pink-deep);
+    background:#fffafc;
+  }
+  .price-row input:focus { outline:none; border-color:var(--pink); }
+  .price-row.edited input { border-color:var(--mint); background:#f3fbf9; }
+  .price-reset-all {
+    width:100%; padding:11px; border:2px solid var(--ink-soft);
+    background:#fff; border-radius:14px; color:var(--ink-soft);
+    font-family:'Mochiy Pop One', sans-serif; font-size:12px;
+    cursor:pointer; margin-top:6px;
+  }
+
+  /* ===== 項目管理 ===== */
+  .mng-note {
+    background:#f1f4f7; border:2px dashed #7a8a99;
+    border-radius:14px; padding:10px 12px; font-size:12px;
+    color:var(--ink); line-height:1.6; margin-bottom:14px;
+  }
+  .mng-mid { margin-bottom:14px; }
+  .mng-mid-title {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:12px; color:#fff; display:inline-block;
+    padding:3px 12px; border-radius:12px; margin-bottom:8px;
+  }
+  .mng-row {
+    background:#fff; border:2px solid var(--line);
+    border-radius:14px; padding:10px; margin-bottom:8px;
+  }
+  .mng-row .r1 { display:flex; gap:8px; align-items:center; }
+  .mng-name {
+    flex:1; min-width:0; padding:8px 10px; font-size:14.5px;
+    border:2px solid var(--line); border-radius:10px;
+    font-family:'Zen Maru Gothic'; font-weight:700; color:var(--ink);
+    background:#fffafc;
+  }
+  .mng-name:focus { outline:none; border-color:#7a8a99; }
+  .mng-del {
+    width:34px; height:34px; flex:0 0 auto; border-radius:10px;
+    background:#fff0f2; color:var(--pink-deep); border:2px solid var(--line);
+    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .mng-del:active { background:var(--pink-deep); color:#fff; }
+  .mng-row .r2 { display:flex; gap:8px; margin-top:8px; }
+  .mng-field {
+    flex:1; min-width:0; display:flex; align-items:center; gap:6px;
+    background:#fffafc; border:2px solid var(--line);
+    border-radius:10px; padding:6px 10px;
+  }
+  .mng-field .mf-lbl { font-size:11px; color:var(--ink-soft); font-weight:700; white-space:nowrap; }
+  .mng-field input {
+    flex:1; min-width:0; border:none; background:transparent;
+    text-align:right; font-size:15px; font-weight:700;
+    font-family:'Zen Maru Gothic'; color:var(--pink-deep);
+  }
+  .mng-field input:focus { outline:none; }
+  .mng-field .mf-unit { font-size:12px; color:var(--ink-soft); font-weight:700; }
+  .mng-deleted {
+    margin-top:6px; padding:12px; background:#fff;
+    border:2px dashed var(--ink-soft); border-radius:14px;
+  }
+  .mng-deleted h4 { font-family:'Mochiy Pop One'; font-size:12px; color:var(--ink-soft); margin-bottom:8px; }
+  .mng-del-tag {
+    display:inline-flex; align-items:center; gap:6px; margin:0 6px 6px 0;
+    background:#f6f6f6; border:2px solid var(--line); border-radius:14px;
+    padding:5px 8px 5px 11px; font-size:12.5px; font-weight:700; color:var(--ink-soft);
+  }
+  .mng-del-tag .restore {
+    background:var(--green); color:#fff; border-radius:10px;
+    padding:2px 8px; font-size:11px; cursor:pointer;
+  }
+
+  /* ===== 購入履歴 ===== */
+  .hist-note {
+    background:#f3f0fa; border:2px dashed #9a8ec4;
+    border-radius:14px; padding:10px 12px; font-size:12px;
+    color:var(--ink); line-height:1.6; margin-bottom:12px;
+  }
+  .hist-summary {
+    display:flex; gap:8px; margin-bottom:14px;
+  }
+  .hist-stat {
+    flex:1; background:#fff; border:2px solid #d8cff0;
+    border-radius:14px; padding:10px; text-align:center;
+    box-shadow:0 2px 0 #e7e0f5;
+  }
+  .hist-stat .hs-num { font-family:'Mochiy Pop One'; font-size:18px; color:#7a6cb0; }
+  .hist-stat .hs-lbl { font-size:10.5px; color:var(--ink-soft); font-weight:700; margin-top:2px; }
+  .hist-day { margin-bottom:14px; }
+  .hist-day-head {
+    display:flex; align-items:center; gap:8px; margin-bottom:6px;
+  }
+  .hist-day-date {
+    font-family:'Mochiy Pop One'; font-size:12px; color:#fff;
+    background:#9a8ec4; padding:3px 12px; border-radius:12px;
+  }
+  .hist-day-total { font-size:12px; font-weight:700; color:var(--ink-soft); }
+  .hist-row {
+    display:flex; align-items:center; gap:9px;
+    background:#fff; border:2px solid var(--line); border-radius:14px;
+    padding:9px 10px; margin-bottom:7px;
+  }
+  .hist-row.used { opacity:.6; }
+  .hist-main { flex:1; min-width:0; }
+  .hist-name { font-size:14px; font-weight:700; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .hist-exp { font-size:10.5px; font-weight:700; margin-top:3px; display:inline-block; padding:1px 7px; border-radius:8px; }
+  .hist-exp.ok { background:#eef7ef; color:#5b9c5b; }
+  .hist-exp.warn { background:#fff3cd; color:#a87b00; }
+  .hist-exp.danger { background:#ffe5e5; color:var(--red); }
+  .hist-exp.over { background:var(--red); color:#fff; }
+  .used-badge { background:var(--mint); color:#fff; font-size:10px; padding:1px 7px; border-radius:8px; }
+  .hist-price { font-size:13px; font-weight:700; color:var(--ink); flex:0 0 auto; }
+  .hist-acts { display:flex; flex-direction:column; gap:4px; flex:0 0 auto; }
+  .hist-mini {
+    border:none; border-radius:9px; padding:4px 8px; font-size:11px; font-weight:700;
+    cursor:pointer; font-family:'Zen Maru Gothic';
+  }
+  .hist-back { background:#eef7fc; color:#5aa0c4; }
+  .hist-rm { background:#fff0f2; color:var(--pink-deep); }
+  .hist-clear {
+    width:100%; padding:11px; border:2px solid var(--ink-soft);
+    background:#fff; border-radius:14px; color:var(--ink-soft);
+    font-family:'Mochiy Pop One'; font-size:12px; cursor:pointer; margin-top:6px;
+  }
+
+  /* ===== 使い切り ===== */
+  .useup-note {
+    background:#fff0eb; border:2px dashed var(--orange);
+    border-radius:14px; padding:10px 12px; font-size:12px;
+    color:var(--ink); line-height:1.6; margin-bottom:14px;
+  }
+  .useup-empty {
+    text-align:center; color:var(--ink-soft); font-size:13px;
+    padding:30px 14px; background:#fff;
+    border:2px dashed var(--line); border-radius:16px; line-height:1.6;
+  }
+  .useup-empty .big { font-size:34px; display:block; margin-bottom:8px; }
+  .useup-card {
+    display:flex; align-items:center; gap:10px;
+    background:#fff; border:2px solid var(--line); border-radius:16px;
+    padding:11px 12px; margin-bottom:9px; position:relative;
+    box-shadow:0 2px 0 var(--line);
+  }
+  .useup-card.lv-over { border-color:var(--red); box-shadow:0 2px 0 #f3b6bd; }
+  .useup-card.lv-1 { border-color:var(--orange); box-shadow:0 2px 0 #ffd0b8; }
+  .useup-card.lv-3 { border-color:var(--yellow); box-shadow:0 2px 0 #ffe9b8; }
+  .useup-left { flex:1; min-width:0; }
+  .useup-name { font-size:15px; font-weight:700; color:var(--ink); }
+  .useup-meta { font-size:11px; color:var(--ink-soft); font-weight:700; margin-top:3px; }
+  .useup-status {
+    display:inline-block; margin-top:5px; font-size:11.5px; font-weight:700;
+    padding:2px 9px; border-radius:10px;
+  }
+  .useup-status.over { background:var(--red); color:#fff; }
+  .useup-status.lv1 { background:#fff0eb; color:var(--orange); border:1.5px solid var(--orange); }
+  .useup-status.lv3 { background:#fffaef; color:#b78a00; border:1.5px solid var(--yellow); }
+  .useup-done {
+    flex:0 0 auto; border:none; border-radius:14px;
+    background:var(--mint); color:#fff; box-shadow:0 3px 0 #5fb3a6;
+    font-family:'Mochiy Pop One'; font-size:12px; padding:10px 12px; cursor:pointer;
+  }
+  .useup-done:active { transform:translateY(2px); box-shadow:none; }
+
+  .fridge-note {
+    background:#eef7fc; border:2px dashed #6fb3d6;
+    border-radius:14px; padding:10px 12px; font-size:12px;
+    color:var(--ink); line-height:1.6; margin-bottom:14px;
+  }
+  .fridge-section-title {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:13px; color:var(--ink); margin:4px 0 8px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .fridge-section-title::before {
+    content:''; width:8px; height:8px; border-radius:50%;
+    background:#6fb3d6; display:inline-block;
+  }
+  .fridge-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .fridge-empty {
+    width:100%; text-align:center; color:var(--ink-soft);
+    font-size:12.5px; padding:18px 10px;
+    background:#fff; border:2px dashed var(--line); border-radius:14px;
+  }
+  .fridge-empty .big { font-size:30px; display:block; margin-bottom:6px; }
+  .fridge-tag {
+    display:inline-flex; align-items:center; gap:7px;
+    background:#fff; border:2px solid #6fb3d6; border-radius:16px;
+    padding:7px 9px 7px 13px; font-size:13.5px; font-weight:700;
+    color:var(--ink); box-shadow:0 2px 0 #cfe6f2;
+  }
+  .fridge-tag .ft-x {
+    width:20px; height:20px; border-radius:50%;
+    background:#eef7fc; color:#6fb3d6; font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex:0 0 auto;
+  }
+  .fridge-tag .ft-x:active { background:#6fb3d6; color:#fff; }
+  .fridge-add-mid { margin-bottom:14px; }
+  .fridge-add-title {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:11.5px; color:#fff; display:inline-block;
+    padding:3px 12px; border-radius:12px; margin-bottom:8px;
+  }
+  .fridge-chips { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .fchip {
+    padding:10px 6px; background:#fff;
+    border:2px solid var(--line); border-radius:16px;
+    font-size:13px; font-weight:700; color:var(--ink);
+    cursor:pointer; position:relative; text-align:center;
+    box-shadow:0 2px 0 var(--line); min-height:44px;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .12s, background .12s; line-height:1.2;
+  }
+  .fchip:active { transform:scale(.94); }
+  .fchip.in-fridge { background:#6fb3d6; color:#fff; border-color:#5aa0c4; box-shadow:0 2px 0 #5aa0c4; }
+  .fchip.in-fridge::after {
+    content:'❄'; font-size:11px;
+    position:absolute; top:-6px; right:-6px;
+    width:20px; height:20px; border-radius:50%;
+    background:#5aa0c4; border:2px solid #fff; color:#fff;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .fridge-divider { border:none; border-top:2px dashed var(--line); margin:4px 0 16px; }
+
+  .cart {
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    background:#fff; border-top:3px solid var(--pink);
+    border-radius:22px 22px 0 0;
+    box-shadow:0 -6px 24px rgba(255,143,171,0.25);
+    transition:transform .35s cubic-bezier(.34,1.4,.6,1);
+    max-height:80vh; display:flex; flex-direction:column;
+  }
+  .cart.collapsed { transform:translateY(calc(100% - 70px)); }
+  .cart-handle {
+    padding:12px 18px; cursor:pointer;
+    display:flex; align-items:center; gap:10px;
+    border-bottom:2px dashed var(--line);
+    flex:0 0 auto; position:relative;
+  }
+  .cart-handle .grip {
+    width:38px; height:5px; background:var(--line);
+    border-radius:10px; position:absolute; top:6px; left:50%;
+    transform:translateX(-50%);
+  }
+  .cart-handle h2 { font-family:'Mochiy Pop One', sans-serif; font-size:15px; color:var(--pink-deep); flex:1; }
+  .cart-handle .htotal { font-family:'Mochiy Pop One', sans-serif; font-size:14px; color:var(--ink); }
+  .cart-count-badge {
+    background:var(--pink-deep); color:#fff;
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:12px; padding:3px 10px; border-radius:14px;
+  }
+  .cart-arrow { color:var(--ink-soft); font-size:14px; transition:transform .3s; }
+  .cart.collapsed .cart-arrow { transform:rotate(180deg); }
+
+  .cart-body { overflow-y:auto; padding:6px 16px 96px; flex:1; }
+  .fridge-banner {
+    display:flex; align-items:flex-start; gap:8px;
+    background:#fff3cd; border:2px solid #f0c040; border-radius:14px;
+    padding:10px 12px; margin-top:8px; font-size:12px;
+    color:#8a6500; line-height:1.5;
+  }
+  .fridge-banner .fb-ic { font-size:18px; flex:0 0 auto; }
+  .fridge-banner b { color:#a87b00; }
+  .cart-empty { text-align:center; color:var(--ink-soft); padding:30px 10px; font-size:13px; }
+  .cart-empty .big { font-size:34px; display:block; margin-bottom:8px; }
+
+  .cart-group { margin-top:12px; }
+  .cart-group-title {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:12px; color:#fff; display:inline-block;
+    padding:3px 12px; border-radius:12px; margin-bottom:6px;
+  }
+  .cart-item { display:flex; align-items:center; gap:10px; padding:10px 8px; border-bottom:1.5px dashed var(--line); }
+  .cart-item.has-fridge {
+    background:#fffbf0; border-radius:12px;
+    box-shadow:inset 0 0 0 2px #f0c040; padding:10px 10px;
+  }
+  .cart-check {
+    width:26px; height:26px; flex:0 0 auto;
+    border:2.5px solid var(--mint); border-radius:50%;
+    position:relative; cursor:pointer; transition:.15s;
+  }
+  .cart-check::after {
+    content:''; position:absolute; top:48%; left:50%;
+    width:11px; height:6px;
+    border-left:2.5px solid #fff; border-bottom:2.5px solid #fff;
+    transform:translate(-50%,-60%) rotate(-45deg);
+    opacity:0; transition:.15s;
+  }
+  .cart-item.bought .cart-check { background:var(--mint); border-color:var(--mint); }
+  .cart-item.bought .cart-check::after { opacity:1; }
+  .cart-item.bought .ci-name span:first-child { text-decoration:line-through; color:var(--ink-soft); }
+  .ci-name { flex:1; font-size:14.5px; font-weight:700; display:flex; flex-direction:column; gap:3px; }
+  .ci-fridge-warn {
+    display:inline-flex; align-items:center; gap:4px; align-self:flex-start;
+    background:#fff3cd; border:1.5px solid #f0c040; border-radius:10px;
+    padding:2px 8px; font-size:10.5px; font-weight:700; color:#a87b00;
+  }
+  .ci-price { font-size:13px; font-weight:700; color:var(--ink); flex:0 0 auto; min-width:50px; text-align:right; }
+  .cart-item.bought .ci-price { color:var(--ink-soft); }
+  .ci-del { color:var(--ink-soft); font-size:18px; cursor:pointer; padding:2px 6px; flex:0 0 auto; }
+  .ci-del:active { color:var(--pink-deep); }
+
+  .cart-actions {
+    position:absolute; bottom:0; left:0; right:0;
+    padding:10px 16px; background:#fff;
+    border-top:2px dashed var(--line); display:flex; gap:8px;
+  }
+  .btn {
+    flex:1; padding:11px; border:none; border-radius:16px;
+    font-family:'Mochiy Pop One', sans-serif; font-size:12px;
+    cursor:pointer; color:#fff;
+  }
+  .btn-clear { background:var(--ink-soft); box-shadow:0 3px 0 #8a7a82; }
+  .btn-hist { background:var(--mint); box-shadow:0 3px 0 #5fb3a6; }
+  .btn:active { transform:translateY(2px); box-shadow:none; }
+
+  .modal-bg {
+    position:fixed; inset:0; z-index:60;
+    background:rgba(90,74,82,0.4); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .modal-bg.show { display:flex; }
+  .modal {
+    background:#fff; border-radius:24px; padding:22px;
+    width:100%; max-width:340px;
+    border:3px solid var(--pink); box-shadow:0 8px 0 var(--line);
+  }
+  .modal h3 {
+    font-family:'Mochiy Pop One', sans-serif;
+    font-size:16px; color:var(--pink-deep);
+    text-align:center; margin-bottom:16px;
+  }
+  .modal label { font-size:12px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:5px; }
+  .modal input, .modal select {
+    width:100%; padding:11px 12px; font-size:15px;
+    border:2px solid var(--line); border-radius:14px;
+    font-family:'Zen Maru Gothic'; font-weight:700; color:var(--ink);
+    margin-bottom:14px; background:#fffafc;
+  }
+  .modal input:focus, .modal select:focus { outline:none; border-color:var(--pink); }
+  .row2 { display:flex; gap:10px; }
+  .row2 > div { flex:1; }
+  .row2 > div.narrow { flex:0 0 96px; }
+  .save-toggle {
+    display:flex; align-items:center; gap:8px; margin-bottom:16px;
+    font-size:12.5px; font-weight:700; color:var(--ink);
+    background:#fffafc; padding:10px 12px; border-radius:14px;
+    border:2px solid var(--line); cursor:pointer;
+  }
+  .save-toggle .sw {
+    width:42px; height:24px; background:var(--line); border-radius:12px;
+    position:relative; flex:0 0 auto; transition:.2s;
+  }
+  .save-toggle .sw::after {
+    content:''; position:absolute; top:3px; left:3px;
+    width:18px; height:18px; background:#fff; border-radius:50%;
+    transition:.2s; box-shadow:0 1px 2px rgba(0,0,0,.2);
+  }
+  .save-toggle.on .sw { background:var(--mint); }
+  .save-toggle.on .sw::after { transform:translateX(18px); }
+  .save-toggle small { display:block; color:var(--ink-soft); font-weight:500; font-size:10.5px; margin-top:2px;}
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btns .btn { padding:12px; }
+  .btn-cancel { background:var(--ink-soft); box-shadow:0 3px 0 #8a7a82; }
+  .btn-ok { background:var(--pink-deep); box-shadow:0 3px 0 #d63d72; }
+
+  .fab {
+    position:fixed; right:16px; bottom:84px; z-index:35;
+    width:56px; height:56px; border-radius:50%;
+    background:var(--yellow); border:3px solid #fff;
+    box-shadow:0 4px 0 #e0b94a, 0 6px 14px rgba(0,0,0,.15);
+    font-size:28px; color:var(--ink); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .15s;
+  }
+  .fab:active { transform:scale(.9) translateY(2px); }
+
+  .toast {
+    position:fixed; left:50%; bottom:150px; transform:transl(-50%,10px);
+    transform:translateX(-50%) translateY(10px);
+    background:var(--ink); color:#fff; font-size:12.5px; font-weight:700;
+    padding:10px 16px; border-radius:16px; z-index:80;
+    opacity:0; pointer-events:none; transition:.25s;
+    box-shadow:0 4px 14px rgba(0,0,0,.2); max-width:80%; text-align:center;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .pop { animation:pop .3s; }
+  @keyframes pop { 0%{transform:scale(.6);} 60%{transform:scale(1.15);} 100%{transform:scale(1);} }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1><span class="ic">🛒</span> おかいものリスト <span class="ic">🎀</span></h1>
+  <div class="total-bar">
+    <span class="tlabel">合計（概算）</span>
+    <span class="tyen" id="topYen">¥0</span>
+    <span class="tnum" id="topNum">0点</span>
+  </div>
+  <div class="useup-alert" id="useupAlert">
+    <span class="ua-ic">🍳</span>
+    <span class="ua-tx" id="useupAlertTx"></span>
+    <span class="ua-go">見る ›</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+    <div class="progress-txt" id="ptxt">0/0</div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="panel" id="panel"></div>
+
+<button class="fab" id="fab" title="手動で追加">＋</button>
+
+<div class="cart collapsed" id="cart">
+  <div class="cart-handle" id="cartHandle">
+    <div class="grip"></div>
+    <h2>🧺 カゴの中</h2>
+    <span class="htotal" id="htotal">¥0</span>
+    <span class="cart-count-badge" id="cartBadge">0</span>
+    <span class="cart-arrow">▲</span>
+  </div>
+  <div class="cart-body" id="cartBody"></div>
+  <div class="cart-actions">
+    <button class="btn btn-hist" id="toHistory">✓ 買ったものを履歴へ</button>
+    <button class="btn btn-clear" id="clearAll">ぜんぶ消す</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="confirmBg">
+  <div class="modal">
+    <h3 id="cfTitle">🧺 カゴを空にする？</h3>
+    <p id="cfMsg" style="text-align:center;font-size:13px;color:var(--ink-soft);margin-bottom:18px;line-height:1.6;"></p>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" id="cfCancel">やめる</button>
+      <button class="btn btn-ok" id="cfOk">ぜんぶ消す</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>✏️ 手動で追加</h3>
+    <div class="row2">
+      <div>
+        <label>なまえ</label>
+        <input type="text" id="mName" placeholder="例：からあげ粉" autocomplete="off">
+      </div>
+      <div class="narrow">
+        <label>金額(円)</label>
+        <input type="number" id="mPrice" placeholder="0" inputmode="numeric" min="0">
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label>カテゴリ</label>
+        <select id="mCat"></select>
+      </div>
+      <div class="narrow">
+        <label>期限(日)</label>
+        <input type="number" id="mShelf" placeholder="なし" inputmode="numeric" min="0">
+      </div>
+    </div>
+    <div class="save-toggle" id="saveToggle">
+      <div class="sw"></div>
+      <div>
+        次回も使う（リストに登録）
+        <small>OFFだと今回かぎり</small>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" id="mCancel">やめる</button>
+      <button class="btn btn-ok" id="mOk">カゴに入れる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const CATEGORIES = [
+  { id:'food', name:'食料品', emoji:'🍱', color:'var(--green)', mids:[
+    { name:'野菜', items:[['玉ねぎ',60],['じゃがいも',60],['にんじん',50],['キャベツ',200],['レタス',180],['トマト',100],['きゅうり',60],['なす',70],['ピーマン',130],['ほうれん草',180],['長ねぎ',150],['もやし',30],['にんにく',100],['生姜',120]] },
+    { name:'きのこ', items:[['しいたけ',180],['しめじ',100],['えのき',80],['まいたけ',130],['エリンギ',130]] },
+    { name:'果物', items:[['バナナ',150],['りんご',150],['みかん',300],['いちご',400],['ぶどう',500],['キウイ',80],['レモン',80]] },
+    { name:'肉', items:[['鶏むね',300],['鶏もも',400],['豚こま',350],['豚バラ',400],['牛肉',600],['ひき肉',300]] },
+    { name:'肉加工品', items:[['ベーコン',250],['ウインナー',280],['ハム',250]] },
+    { name:'魚', items:[['鮭',400],['さば',300],['刺身',600],['えび',500],['ツナ缶',150],['しらす',300]] },
+    { name:'卵・乳製品', items:[['卵',280],['牛乳',230],['ヨーグルト',180],['チーズ',350],['バター',450]] },
+    { name:'大豆製品', items:[['豆腐',80],['納豆',100],['油揚げ',100],['厚揚げ',120]] },
+  ]},
+  { id:'staple', name:'主食・麺', emoji:'🍚', color:'var(--peach)', mids:[
+    { name:'米・パン', items:[['米',3000],['食パン',180],['冷凍ご飯',400]] },
+    { name:'麺類', items:[['うどん',150],['そば',200],['パスタ',300],['ラーメン',250],['焼きそば',150]] },
+  ]},
+  { id:'season', name:'調味料', emoji:'🧂', color:'var(--lav)', mids:[
+    { name:'基本調味料', items:[['醤油',300],['味噌',350],['塩',150],['砂糖',250],['酢',200],['みりん',300],['料理酒',300]] },
+    { name:'油・ソース', items:[['サラダ油',400],['ごま油',450],['マヨネーズ',300],['ケチャップ',250],['ソース',280],['ドレッシング',300]] },
+    { name:'だし・粉類', items:[['だしの素',350],['コンソメ',250],['小麦粉',250],['片栗粉',200],['パン粉',150]] },
+  ]},
+  { id:'frozen', name:'冷凍・即席', emoji:'🧊', color:'var(--blue)', mids:[
+    { name:'冷凍食品', items:[['冷凍野菜',250],['冷凍餃子',280],['冷凍うどん',200],['冷凍からあげ',350]] },
+    { name:'インスタント', items:[['レトルトカレー',200],['カップ麺',180],['缶詰',200],['インスタント味噌汁',250]] },
+  ]},
+  { id:'snack', name:'お菓子・飲料', emoji:'🍫', color:'var(--pink)', mids:[
+    { name:'飲料', items:[['お茶',150],['コーヒー',500],['ジュース',180],['炭酸水',100],['水',100]] },
+    { name:'お酒', items:[['ビール',230],['チューハイ',150],['ワイン',800]] },
+    { name:'お菓子', items:[['スナック菓子',150],['チョコ',200],['アイス',300],['クッキー',200]] },
+  ]},
+  { id:'daily', name:'日用品', emoji:'🧻', color:'var(--mint)', mids:[
+    { name:'紙類', items:[['トイレットペーパー',350],['ティッシュ',300],['キッチンペーパー',250]] },
+    { name:'掃除・洗濯', items:[['食器洗剤',200],['洗濯洗剤',400],['柔軟剤',400],['掃除用洗剤',300],['ゴミ袋',300]] },
+    { name:'キッチン消耗品', items:[['ラップ',250],['アルミホイル',200],['ジップ袋',300],['スポンジ',150]] },
+  ]},
+  { id:'bath', name:'バス・衛生', emoji:'🛁', color:'var(--yellow)', mids:[
+    { name:'バス用品', items:[['シャンプー',700],['コンディショナー',700],['ボディソープ',500],['入浴剤',500]] },
+    { name:'衛生用品', items:[['歯磨き粉',300],['歯ブラシ',200],['ハンドソープ',350],['マスク',400]] },
+  ]},
+  { id:'other', name:'その他', emoji:'💊', color:'var(--pink-deep)', mids:[
+    { name:'常備品', items:[['電池',400],['常備薬',800],['絆創膏',300],['携帯ティッシュ',200]] },
+  ]},
+];
+
+const FOOD_CAT_IDS = ['food','staple','frozen'];
+
+/* 初期の期限目安（日）※書き換え可 */
+const DEFAULT_SHELF = {
+  '玉ねぎ':14,'じゃがいも':30,'にんじん':14,'キャベツ':10,'レタス':5,'トマト':6,'きゅうり':5,'なす':5,'ピーマン':7,'ほうれん草':3,'長ねぎ':7,'もやし':2,'にんにく':30,'生姜':21,
+  'しいたけ':5,'しめじ':5,'えのき':5,'まいたけ':5,'エリンギ':7,
+  'バナナ':5,'りんご':21,'みかん':10,'いちご':3,'ぶどう':5,'キウイ':14,'レモン':14,
+  '鶏むね':2,'鶏もも':2,'豚こま':3,'豚バラ':3,'牛肉':3,'ひき肉':1,
+  'ベーコン':14,'ウインナー':14,'ハム':7,
+  '鮭':2,'さば':2,'刺身':1,'えび':2,'ツナ缶':720,'しらす':3,
+  '卵':14,'牛乳':6,'ヨーグルト':10,'チーズ':30,'バター':60,
+  '豆腐':4,'納豆':7,'油揚げ':5,'厚揚げ':4,
+  '食パン':4,'冷凍ご飯':30,'うどん':5,'そば':120,'パスタ':365,'ラーメン':60
+};
+
+const DAY = 86400000;
+
+/* ============ STATE ============ */
+let activeTab = 0;       // number | 'fridge' | 'useup' | 'history' | 'manage' | 'price'
+let cart = [];           // {name, catId, midName, bought}
+let customPresets = [];  // {catId, midName, name}
+let priceMap = {};
+let priceEdits = {};
+let shelfMap = {};
+let shelfEdits = {};     // name -> days
+let deletedItems = [];   // base names hidden
+let fridge = [];
+let history = [];        // {id,name,catId,midName,price,purchaseMs,shelfDays,used,usedMs}
+let saveNext = false;
+
+const SKEY_CART='shop:cart', SKEY_CUSTOM='shop:custom', SKEY_PRICES='shop:prices',
+      SKEY_FRIDGE='shop:fridge', SKEY_SHELF='shop:shelf', SKEY_DELETED='shop:deleted', SKEY_HIST='shop:history';
+
+function buildBasePrices(){
+  const m = {};
+  CATEGORIES.forEach(c=>c.mids.forEach(mid=>mid.items.forEach(it=>{ m[it[0]]=it[1]; })));
+  return m;
+}
+function buildShelfMap(){ return Object.assign({}, DEFAULT_SHELF, shelfEdits); }
+function rebuildMaps(){
+  const base = buildBasePrices();
+  customPresets.forEach(p=>{ if(base[p.name]===undefined) base[p.name]=0; });
+  priceMap = Object.assign({}, base, priceEdits);
+  shelfMap = buildShelfMap();
+}
+
+async function sg(k){ try{ if(window.storage){ const r=await window.storage.get(k); if(r&&r.value) return JSON.parse(r.value);} }catch(e){} return null; }
+async function ss(k,v){ try{ if(window.storage) await window.storage.set(k, JSON.stringify(v)); }catch(e){} }
+
+async function load() {
+  const c=await sg(SKEY_CART); if(c) cart=c;
+  const cu=await sg(SKEY_CUSTOM); if(cu) customPresets=cu;
+  const pe=await sg(SKEY_PRICES); if(pe) priceEdits=pe;
+  const sh=await sg(SKEY_SHELF); if(sh) shelfEdits=sh;
+  const dl=await sg(SKEY_DELETED); if(dl) deletedItems=dl;
+  const fr=await sg(SKEY_FRIDGE); if(fr) fridge=fr;
+  const hi=await sg(SKEY_HIST); if(hi) history=hi;
+  rebuildMaps();
+}
+function saveCart(){ ss(SKEY_CART,cart); }
+function saveCustom(){ ss(SKEY_CUSTOM,customPresets); }
+function savePrices(){ ss(SKEY_PRICES,priceEdits); }
+function saveShelf(){ ss(SKEY_SHELF,shelfEdits); }
+function saveDeleted(){ ss(SKEY_DELETED,deletedItems); }
+function saveFridge(){ ss(SKEY_FRIDGE,fridge); }
+function saveHistory(){ ss(SKEY_HIST,history); }
+
+/* ============ HELPERS ============ */
+function inCart(name){ return cart.some(c=>c.name===name); }
+function inFridge(name){ return fridge.indexOf(name)!==-1; }
+function priceOf(name){ return priceMap[name]==null ? 0 : priceMap[name]; }
+function shelfOf(name){ return shelfMap[name]==null ? 0 : shelfMap[name]; }
+function yen(n){ return '¥'+Number(n).toLocaleString('ja-JP'); }
+function cartTotal(){ return cart.reduce((s,c)=>s+priceOf(c.name),0); }
+function midsFor(cat){
+  const mids = cat.mids.map(m=>({name:m.name, items:m.items.map(it=>it[0]).filter(n=>deletedItems.indexOf(n)===-1)}));
+  customPresets.filter(p=>p.catId===cat.id).forEach(p=>{
+    let m = mids.find(x=>x.name===p.midName);
+    if(!m){ m={name:p.midName, items:[]}; mids.push(m); }
+    if(m.items.indexOf(p.name)===-1) m.items.push(p.name);
+  });
+  return mids.filter(m=>m.items.length>0);
+}
+function visibleNameSet(){
+  const s=new Set();
+  CATEGORIES.forEach(c=>c.mids.forEach(m=>m.items.forEach(it=>{ if(deletedItems.indexOf(it[0])===-1) s.add(it[0]); })));
+  customPresets.forEach(p=>s.add(p.name));
+  return s;
+}
+function findBaseLocation(name){
+  for(const c of CATEGORIES) for(const m of c.mids) for(const it of m.items) if(it[0]===name) return {catId:c.id, midName:m.name};
+  return null;
+}
+function startOfDay(ms){ const d=new Date(ms); d.setHours(0,0,0,0); return d.getTime(); }
+function expiryMs(h){ if(!h.shelfDays) return null; return startOfDay(h.purchaseMs)+h.shelfDays*DAY; }
+function daysLeft(h){ const e=expiryMs(h); if(e==null) return null; return Math.round((e-startOfDay(Date.now()))/DAY); }
+function useUpEntries(){ return history.filter(h=>!h.used && h.shelfDays>0 && daysLeft(h)<=3).sort((a,b)=>daysLeft(a)-daysLeft(b)); }
+const WD=['日','月','火','水','木','金','土'];
+function fmtMD(ms){ const d=new Date(ms); return (d.getMonth()+1)+'/'+d.getDate(); }
+function fmtFull(ms){ const d=new Date(ms); return (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')'; }
+
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ============ TOTALS / TOP ALERT ============ */
+function renderTotals(){
+  const total = cartTotal();
+  const topYen = document.getElementById('topYen');
+  topYen.textContent = yen(total);
+  topYen.classList.remove('bump'); void topYen.offsetWidth; topYen.classList.add('bump');
+  document.getElementById('topNum').textContent = cart.length+'点';
+  document.getElementById('htotal').textContent = yen(total);
+  renderTopAlert();
+}
+function renderTopAlert(){
+  const list = useUpEntries();
+  const box = document.getElementById('useupAlert');
+  if(list.length>0){
+    const over = list.filter(h=>daysLeft(h)<0).length;
+    let tx = '使い切りたいもの <b>'+list.length+'点</b>';
+    if(over>0) tx += '（期限切れ '+over+'）';
+    document.getElementById('useupAlertTx').innerHTML = tx;
+    box.classList.add('show');
+  } else box.classList.remove('show');
+}
+document.getElementById('useupAlert').onclick = function(){ activeTab='useup'; renderTabs(); renderPanel(); window.scrollTo({top:0,behavior:'smooth'}); };
+
+/* ============ TABS ============ */
+function makeTab(parent, key, label, emoji, badge){
+  const t=document.createElement('div');
+  t.className='tab'+(activeTab===key?' active':'');
+  t.dataset.c=key;
+  t.innerHTML='<span class="em">'+emoji+'</span>'+label;
+  if(badge>0){ const b=document.createElement('span'); b.className='tbadge'; b.textContent=badge; t.appendChild(b); }
+  t.onclick=function(){ activeTab=key; renderTabs(); renderPanel(); };
+  parent.appendChild(t);
+  return t;
+}
+function renderTabs(){
+  const el=document.getElementById('tabs'); el.innerHTML='';
+  CATEGORIES.forEach(function(c,i){ makeTab(el,i,c.name,c.emoji,0); });
+  makeTab(el,'fridge','冷蔵庫','🧊',0);
+  makeTab(el,'useup','使い切り','🍳',useUpEntries().length);
+  makeTab(el,'history','履歴','🧾',0);
+  makeTab(el,'manage','項目管理','⚙',0);
+  makeTab(el,'price','金額設定','💴',0);
+}
+
+/* ============ PANEL ============ */
+function renderPanel(){
+  if(activeTab==='price'){ renderPricePanel(); return; }
+  if(activeTab==='fridge'){ renderFridgePanel(); return; }
+  if(activeTab==='useup'){ renderUseupPanel(); return; }
+  if(activeTab==='history'){ renderHistoryPanel(); return; }
+  if(activeTab==='manage'){ renderManagePanel(); return; }
+  const cat=CATEGORIES[activeTab];
+  const el=document.getElementById('panel'); el.innerHTML='';
+  midsFor(cat).forEach(function(mid){
+    const wrap=document.createElement('div'); wrap.className='midcat';
+    const title=document.createElement('div'); title.className='midcat-title'; title.textContent=mid.name; wrap.appendChild(title);
+    const chips=document.createElement('div'); chips.className='chips';
+    mid.items.forEach(function(name){
+      const chip=document.createElement('div');
+      chip.className='chip'+(inCart(name)?' in-cart':'');
+      const fmark=inFridge(name)?' <span style="font-size:10px">🧊</span>':'';
+      chip.innerHTML='<span>'+name+fmark+'</span><span class="cprice">'+yen(priceOf(name))+'</span>';
+      chip.onclick=function(){ toggleItem(name,cat.id,mid.name,chip); };
+      chips.appendChild(chip);
+    });
+    wrap.appendChild(chips); el.appendChild(wrap);
+  });
+}
+
+/* ============ PRICE PANEL ============ */
+function renderPricePanel(){
+  const el=document.getElementById('panel'); el.innerHTML='';
+  const note=document.createElement('div'); note.className='price-note';
+  note.innerHTML='💡 価格は日本のスーパーの<b>一般的な目安</b>です。地域やお店で変わるので自由に書き換えてOK。変更すると合計にすぐ反映されます。';
+  el.appendChild(note);
+  const search=document.createElement('input'); search.className='price-search'; search.type='text'; search.placeholder='🔍 商品名で絞り込み';
+  search.oninput=function(){ buildPriceList(search.value.trim()); };
+  el.appendChild(search);
+  const container=document.createElement('div'); container.id='priceList'; el.appendChild(container);
+  buildPriceList('');
+  const resetBtn=document.createElement('button'); resetBtn.className='price-reset-all'; resetBtn.textContent='↩ 全部の金額を相場値に戻す';
+  resetBtn.onclick=function(){
+    openConfirm('💴 金額をリセット？','手動で変えた金額が全部、最初の相場値に戻ります。','ぜんぶ戻す',function(){
+      priceEdits={}; rebuildMaps(); savePrices(); renderPanel(); renderCart(); renderTotals();
+    });
+  };
+  el.appendChild(resetBtn);
+}
+function buildPriceList(filter){
+  const container=document.getElementById('priceList'); if(!container) return; container.innerHTML='';
+  const base=buildBasePrices();
+  CATEGORIES.forEach(function(cat){
+    midsFor(cat).forEach(function(mid){
+      const matched=mid.items.filter(function(n){ return !filter||n.indexOf(filter)!==-1; });
+      if(matched.length===0) return;
+      const block=document.createElement('div'); block.className='price-mid';
+      const t=document.createElement('div'); t.className='price-mid-title'; t.style.background=cat.color;
+      if(cat.id==='bath') t.style.color='var(--ink)';
+      t.textContent=cat.emoji+' '+cat.name+' › '+mid.name; block.appendChild(t);
+      matched.forEach(function(name){
+        const baseP=base[name];
+        const isEdited=priceEdits[name]!==undefined && priceEdits[name]!==baseP;
+        const row=document.createElement('div'); row.className='price-row'+(isEdited?' edited':'');
+        const nm=document.createElement('div'); nm.className='pr-name'; nm.textContent=name;
+        const ym=document.createElement('span'); ym.className='pr-yen'; ym.textContent='¥';
+        const inp=document.createElement('input'); inp.type='number'; inp.inputMode='numeric'; inp.min='0'; inp.value=priceOf(name);
+        inp.onchange=function(){
+          let v=parseInt(inp.value,10); if(isNaN(v)||v<0) v=0; inp.value=v;
+          priceEdits[name]=v; rebuildMaps(); savePrices(); renderCart(); renderTotals();
+          row.classList.toggle('edited', baseP===undefined||v!==baseP);
+        };
+        row.append(nm,ym,inp); block.appendChild(row);
+      });
+      container.appendChild(block);
+    });
+  });
+}
+
+/* ============ MANAGE PANEL ============ */
+function renameItem(o,nw){
+  nw=(nw||'').trim();
+  if(!nw) return {ok:false,empty:true};
+  if(nw===o) return {ok:true};
+  if(visibleNameSet().has(nw)) return {ok:false,dup:true};
+  const oldPrice=priceOf(o), oldShelf=shelfOf(o);
+  const custom=customPresets.find(p=>p.name===o);
+  if(custom){ custom.name=nw; }
+  else {
+    const loc=findBaseLocation(o); if(!loc) return {ok:false};
+    if(deletedItems.indexOf(o)===-1) deletedItems.push(o);
+    customPresets.push({catId:loc.catId, midName:loc.midName, name:nw});
+  }
+  priceEdits[nw]=oldPrice; delete priceEdits[o];
+  if(oldShelf>0) shelfEdits[nw]=oldShelf; delete shelfEdits[o];
+  rebuildMaps();
+  cart.forEach(c=>{ if(c.name===o) c.name=nw; });
+  fridge=fridge.map(x=>x===o?nw:x);
+  history.forEach(h=>{ if(h.name===o) h.name=nw; });
+  saveCustom(); savePrices(); saveShelf(); saveDeleted(); saveCart(); saveFridge(); saveHistory();
+  return {ok:true};
+}
+function deleteCatalogItem(name){
+  const custom=customPresets.find(p=>p.name===name);
+  if(custom) customPresets=customPresets.filter(p=>p.name!==name);
+  else if(deletedItems.indexOf(name)===-1) deletedItems.push(name);
+  cart=cart.filter(c=>c.name!==name);
+  fridge=fridge.filter(n=>n!==name);
+  delete priceEdits[name]; delete shelfEdits[name];
+  rebuildMaps();
+  saveCustom(); saveDeleted(); savePrices(); saveShelf(); saveCart(); saveFridge();
+}
+function restoreItem(name){ deletedItems=deletedItems.filter(n=>n!==name); saveDeleted(); rebuildMaps(); }
+
+function renderManagePanel(){
+  const el=document.getElementById('panel'); el.innerHTML='';
+  const note=document.createElement('div'); note.className='mng-note';
+  note.innerHTML='⚙ 各項目の<b>名前・金額・期限（持つ日数）</b>をここで編集できます。期限を入れておくと、買ったあと期限が近づくと「使い切り」に自動で出ます。<br>×で削除（あとで復活も可）。新しい項目は右下の＋から追加。';
+  el.appendChild(note);
+  const search=document.createElement('input'); search.className='price-search'; search.type='text'; search.placeholder='🔍 商品名で絞り込み';
+  search.oninput=function(){ buildManageList(search.value.trim()); };
+  el.appendChild(search);
+  const container=document.createElement('div'); container.id='manageList'; el.appendChild(container);
+  buildManageList('');
+}
+function buildManageList(filter){
+  const container=document.getElementById('manageList'); if(!container) return; container.innerHTML='';
+  CATEGORIES.forEach(function(cat){
+    midsFor(cat).forEach(function(mid){
+      const matched=mid.items.filter(function(n){ return !filter||n.indexOf(filter)!==-1; });
+      if(matched.length===0) return;
+      const block=document.createElement('div'); block.className='mng-mid';
+      const t=document.createElement('div'); t.className='mng-mid-title'; t.style.background=cat.color;
+      if(cat.id==='bath') t.style.color='var(--ink)';
+      t.textContent=cat.emoji+' '+cat.name+' › '+mid.name; block.appendChild(t);
+      matched.forEach(function(name){
+        const row=document.createElement('div'); row.className='mng-row';
+        const r1=document.createElement('div'); r1.className='r1';
+        const nameInp=document.createElement('input'); nameInp.className='mng-name'; nameInp.type='text'; nameInp.value=name;
+        nameInp.onchange=function(){
+          const res=renameItem(name, nameInp.value);
+          if(!res.ok){
+            if(res.dup) toast('「'+nameInp.value.trim()+'」は既にあります');
+            nameInp.value=name; return;
+          }
+          buildManageList(filter); renderCart(); renderTotals(); renderTabs();
+        };
+        const del=document.createElement('div'); del.className='mng-del'; del.textContent='×';
+        del.onclick=function(){
+          openConfirm('🗑 「'+name+'」を削除？','リストから消えます。<br>（あとで復活できます）','削除する',function(){
+            deleteCatalogItem(name); buildManageList(filter); renderCart(); renderTotals(); renderTabs();
+            toast('「'+name+'」を削除しました');
+          });
+        };
+        r1.append(nameInp,del);
+        const r2=document.createElement('div'); r2.className='r2';
+        // price field
+        const pf=document.createElement('div'); pf.className='mng-field';
+        const pl=document.createElement('span'); pl.className='mf-lbl'; pl.textContent='¥';
+        const pInp=document.createElement('input'); pInp.type='number'; pInp.inputMode='numeric'; pInp.min='0'; pInp.value=priceOf(name);
+        pInp.onchange=function(){ let v=parseInt(pInp.value,10); if(isNaN(v)||v<0)v=0; pInp.value=v; priceEdits[name]=v; rebuildMaps(); savePrices(); renderCart(); renderTotals(); };
+        pf.append(pl,pInp);
+        // shelf field
+        const sf=document.createElement('div'); sf.className='mng-field';
+        const sl=document.createElement('span'); sl.className='mf-lbl'; sl.textContent='期限';
+        const sInp=document.createElement('input'); sInp.type='number'; sInp.inputMode='numeric'; sInp.min='0'; sInp.placeholder='なし';
+        const sv=shelfOf(name); sInp.value = sv>0 ? sv : '';
+        sInp.onchange=function(){
+          const raw=sInp.value.trim();
+          if(raw===''){ delete shelfEdits[name]; } else { let v=parseInt(raw,10); if(isNaN(v)||v<0)v=0; shelfEdits[name]=v; sInp.value=v>0?v:''; }
+          rebuildMaps(); saveShelf(); renderTabs(); renderTotals();
+        };
+        const su=document.createElement('span'); su.className='mf-unit'; su.textContent='日';
+        sf.append(sl,sInp,su);
+        r2.append(pf,sf);
+        row.append(r1,r2); block.appendChild(row);
+      });
+      container.appendChild(block);
+    });
+  });
+  if(deletedItems.length>0){
+    const dz=document.createElement('div'); dz.className='mng-deleted';
+    const h=document.createElement('h4'); h.textContent='🗑 削除した項目（タップで復活）'; dz.appendChild(h);
+    deletedItems.forEach(function(name){
+      const tag=document.createElement('span'); tag.className='mng-del-tag';
+      const lab=document.createElement('span'); lab.textContent=name;
+      const r=document.createElement('span'); r.className='restore'; r.textContent='復活';
+      r.onclick=function(){ restoreItem(name); buildManageList(filter); renderTabs(); toast('「'+name+'」を戻しました'); };
+      tag.append(lab,r); dz.appendChild(tag);
+    });
+    container.appendChild(dz);
+  }
+}
+
+/* ============ HISTORY PANEL ============ */
+function renderHistoryPanel(){
+  const el=document.getElementById('panel'); el.innerHTML='';
+  const note=document.createElement('div'); note.className='hist-note';
+  note.innerHTML='🧾 カゴで「買った」にチェックして<b>「買ったものを履歴へ」</b>を押すと、ここに購入日つきで記録されます。期限を設定した食品は残りも表示します。';
+  el.appendChild(note);
+  if(history.length===0){
+    const e=document.createElement('div'); e.className='useup-empty'; e.innerHTML='<span class="big">🧾</span>まだ購入履歴はありません';
+    el.appendChild(e); return;
+  }
+  const totalSpent=history.reduce((s,h)=>s+(h.price||0),0);
+  const now=new Date(); const ym=now.getFullYear()+'-'+now.getMonth();
+  const monthSpent=history.filter(h=>{ const d=new Date(h.purchaseMs); return d.getFullYear()+'-'+d.getMonth()===ym; }).reduce((s,h)=>s+(h.price||0),0);
+  const sum=document.createElement('div'); sum.className='hist-summary';
+  sum.innerHTML=
+    '<div class="hist-stat"><div class="hs-num">'+history.length+'</div><div class="hs-lbl">のべ点数</div></div>'+
+    '<div class="hist-stat"><div class="hs-num">'+yen(monthSpent)+'</div><div class="hs-lbl">今月の合計</div></div>'+
+    '<div class="hist-stat"><div class="hs-num">'+yen(totalSpent)+'</div><div class="hs-lbl">ぜんぶ合計</div></div>';
+  el.appendChild(sum);
+
+  // group by day
+  const groups={};
+  history.forEach(h=>{ const k=startOfDay(h.purchaseMs); (groups[k]=groups[k]||[]).push(h); });
+  const keys=Object.keys(groups).map(Number).sort((a,b)=>b-a);
+  keys.forEach(function(k){
+    const items=groups[k].slice().sort((a,b)=>b.purchaseMs-a.purchaseMs);
+    const dayTotal=items.reduce((s,h)=>s+(h.price||0),0);
+    const day=document.createElement('div'); day.className='hist-day';
+    const head=document.createElement('div'); head.className='hist-day-head';
+    head.innerHTML='<span class="hist-day-date">'+fmtFull(k)+'</span><span class="hist-day-total">'+items.length+'点 ・ '+yen(dayTotal)+'</span>';
+    day.appendChild(head);
+    items.forEach(function(h){
+      const row=document.createElement('div'); row.className='hist-row'+(h.used?' used':'');
+      const main=document.createElement('div'); main.className='hist-main';
+      const nm=document.createElement('div'); nm.className='hist-name';
+      const ns=document.createElement('span'); ns.textContent=h.name; nm.appendChild(ns);
+      if(h.used){ const ub=document.createElement('span'); ub.className='used-badge'; ub.textContent='使った'; nm.appendChild(ub); }
+      main.appendChild(nm);
+      if(h.shelfDays>0){
+        const dl=daysLeft(h);
+        const ex=document.createElement('span'); ex.className='hist-exp';
+        if(h.used){ ex.className+=' ok'; ex.textContent='期限 '+fmtMD(expiryMs(h)); }
+        else if(dl<0){ ex.className+=' over'; ex.textContent='期限切れ '+(-dl)+'日'; }
+        else if(dl<=3){ ex.className+=' danger'; ex.textContent='期限 '+fmtMD(expiryMs(h))+' ・ あと'+dl+'日'; }
+        else { ex.className+=' ok'; ex.textContent='期限 '+fmtMD(expiryMs(h))+' ・ あと'+dl+'日'; }
+        main.appendChild(ex);
+      }
+      const pr=document.createElement('div'); pr.className='hist-price'; pr.textContent=yen(h.price||0);
+      const acts=document.createElement('div'); acts.className='hist-acts';
+      const back=document.createElement('button'); back.className='hist-mini hist-back'; back.textContent='カゴに'; 
+      back.onclick=function(){ if(!inCart(h.name)){ cart.push({name:h.name,catId:h.catId,midName:h.midName,bought:false}); saveCart(); renderCart(); renderTotals(); toast('「'+h.name+'」をカゴに入れました'); } else toast('もうカゴにあります'); };
+      const rm=document.createElement('button'); rm.className='hist-mini hist-rm'; rm.textContent='削除';
+      rm.onclick=function(){ openConfirm('🗑 履歴から削除？','「'+h.name+'」の記録を消します。','削除する',function(){ history=history.filter(x=>x.id!==h.id); saveHistory(); renderPanel(); renderTabs(); renderTotals(); }); };
+      acts.append(back,rm);
+      row.append(main,pr,acts); day.appendChild(row);
+    });
+    el.appendChild(day);
+  });
+  const clr=document.createElement('button'); clr.className='hist-clear'; clr.textContent='🗑 履歴をぜんぶ消す';
+  clr.onclick=function(){ openConfirm('🧾 履歴を全消去？','すべての購入履歴が消えます。','ぜんぶ消す',function(){ history=[]; saveHistory(); renderPanel(); renderTabs(); renderTotals(); }); };
+  el.appendChild(clr);
+}
+
+/* ============ USE-UP PANEL ============ */
+function renderUseupPanel(){
+  const el=document.getElementById('panel'); el.innerHTML='';
+  const note=document.createElement('div'); note.className='useup-note';
+  note.innerHTML='🍳 購入履歴のうち、<b>期限まであと3日以内</b>のものが自動で並びます。使ったら「使った」を押すと消えます。<br>期限の日数は「項目管理」で変更できます。';
+  el.appendChild(note);
+  const list=useUpEntries();
+  if(list.length===0){
+    const e=document.createElement('div'); e.className='useup-empty';
+    e.innerHTML='<span class="big">🎉</span>急いで使うものはありません！<br>期限に余裕があります';
+    el.appendChild(e); return;
+  }
+  list.forEach(function(h){
+    const dl=daysLeft(h);
+    const card=document.createElement('div'); card.className='useup-card '+(dl<0?'lv-over':(dl<=1?'lv-1':'lv-3'));
+    const left=document.createElement('div'); left.className='useup-left';
+    const nm=document.createElement('div'); nm.className='useup-name'; nm.textContent=h.name; left.appendChild(nm);
+    const meta=document.createElement('div'); meta.className='useup-meta'; meta.textContent=fmtMD(h.purchaseMs)+'に購入 ・ 期限 '+fmtMD(expiryMs(h)); left.appendChild(meta);
+    const st=document.createElement('span'); st.className='useup-status '+(dl<0?'over':(dl<=1?'lv1':'lv3'));
+    st.textContent = dl<0 ? '⚠ 期限切れ '+(-dl)+'日' : (dl===0 ? '今日まで！' : 'あと'+dl+'日');
+    left.appendChild(st);
+    const btn=document.createElement('button'); btn.className='useup-done'; btn.textContent='使った';
+    btn.onclick=function(){
+      h.used=true; h.usedMs=Date.now(); saveHistory();
+      renderPanel(); renderTabs(); renderTotals();
+      toast('「'+h.name+'」を使い切りにチェック！');
+    };
+    card.append(left,btn); el.appendChild(card);
+  });
+}
+
+/* ============ FRIDGE PANEL ============ */
+function toggleFridge(name){
+  if(inFridge(name)) fridge=fridge.filter(n=>n!==name); else fridge.push(name);
+  saveFridge(); renderFridgePanel(); renderCart();
+}
+function renderFridgePanel(){
+  const el=document.getElementById('panel'); el.innerHTML='';
+  const note=document.createElement('div'); note.className='fridge-note';
+  note.innerHTML='🧊 いま冷蔵庫にあるものを登録しておくと、同じものをカゴに入れたとき「もうあるよ！」とお知らせします。買いすぎ防止に。';
+  el.appendChild(note);
+  const ct=document.createElement('div'); ct.className='fridge-section-title'; ct.textContent='いま冷蔵庫にあるもの（'+fridge.length+'）'; el.appendChild(ct);
+  const list=document.createElement('div'); list.className='fridge-list';
+  if(fridge.length===0){ list.innerHTML='<div class="fridge-empty"><span class="big">🧊</span>まだ何も登録されていません。<br>下から選んで登録してね</div>'; }
+  else { fridge.forEach(function(name){
+    const tag=document.createElement('div'); tag.className='fridge-tag';
+    const label=document.createElement('span'); label.textContent=name;
+    const x=document.createElement('span'); x.className='ft-x'; x.textContent='×'; x.onclick=function(){ toggleFridge(name); };
+    tag.append(label,x); list.appendChild(tag);
+  }); }
+  el.appendChild(list);
+  const hr=document.createElement('hr'); hr.className='fridge-divider'; el.appendChild(hr);
+  const at=document.createElement('div'); at.className='fridge-section-title'; at.textContent='食品から選んで登録'; el.appendChild(at);
+  CATEGORIES.filter(c=>FOOD_CAT_IDS.indexOf(c.id)!==-1).forEach(function(cat){
+    midsFor(cat).forEach(function(mid){
+      const block=document.createElement('div'); block.className='fridge-add-mid';
+      const t=document.createElement('div'); t.className='fridge-add-title'; t.style.background=cat.color; t.textContent=cat.emoji+' '+cat.name+' › '+mid.name; block.appendChild(t);
+      const chips=document.createElement('div'); chips.className='fridge-chips';
+      mid.items.forEach(function(name){
+        const chip=document.createElement('div'); chip.className='fchip'+(inFridge(name)?' in-fridge':''); chip.textContent=name;
+        chip.onclick=function(){ toggleFridge(name); chip.classList.add('pop'); setTimeout(()=>chip.classList.remove('pop'),300); };
+        chips.appendChild(chip);
+      });
+      block.appendChild(chips); el.appendChild(block);
+    });
+  });
+}
+
+/* ============ TOGGLE ITEM ============ */
+function toggleItem(name, catId, midName, chipEl){
+  if(inCart(name)) cart=cart.filter(c=>c.name!==name);
+  else { cart.push({name:name,catId:catId,midName:midName,bought:false}); if(chipEl){ chipEl.classList.add('pop'); setTimeout(()=>chipEl.classList.remove('pop'),300); } }
+  saveCart(); renderPanel(); renderCart(); renderTotals();
+}
+
+/* ============ CART ============ */
+function renderCart(){
+  const body=document.getElementById('cartBody'); const badge=document.getElementById('cartBadge');
+  body.innerHTML=''; badge.textContent=cart.length;
+  const bought=cart.filter(c=>c.bought).length, total=cart.length;
+  const pct=total?Math.round(bought/total*100):0;
+  document.getElementById('pfill').style.width=pct+'%';
+  document.getElementById('ptxt').textContent=bought+'/'+total;
+  if(total===0){ body.innerHTML='<div class="cart-empty"><span class="big">🧺</span>タブから選んでカゴに入れてね</div>'; return; }
+  const overlap=cart.filter(c=>inFridge(c.name)).map(c=>c.name);
+  if(overlap.length>0){
+    const banner=document.createElement('div'); banner.className='fridge-banner';
+    banner.innerHTML='<span class="fb-ic">🧊</span><div><b>'+overlap.length+'個</b>、冷蔵庫にすでにあるよ！<br>'+overlap.join('・')+' ／ 本当に必要かチェック！</div>';
+    body.appendChild(banner);
+  }
+  CATEGORIES.forEach(function(cat){
+    const items=cart.filter(c=>c.catId===cat.id); if(items.length===0) return;
+    const group=document.createElement('div'); group.className='cart-group';
+    const gt=document.createElement('div'); gt.className='cart-group-title'; gt.style.background=cat.color; if(cat.id==='bath') gt.style.color='var(--ink)';
+    const subTotal=items.reduce((s,it)=>s+priceOf(it.name),0); gt.textContent=cat.emoji+' '+cat.name+'  '+yen(subTotal); group.appendChild(gt);
+    const midOrder={}; cat.mids.forEach((m,idx)=>midOrder[m.name]=idx);
+    items.sort((a,b)=>(midOrder[a.midName]==null?99:midOrder[a.midName])-(midOrder[b.midName]==null?99:midOrder[b.midName]));
+    items.forEach(function(item){
+      const hasFridge=inFridge(item.name);
+      const row=document.createElement('div'); row.className='cart-item'+(item.bought?' bought':'')+(hasFridge?' has-fridge':'');
+      const chk=document.createElement('div'); chk.className='cart-check'; chk.onclick=function(){ item.bought=!item.bought; saveCart(); renderCart(); };
+      const nm=document.createElement('div'); nm.className='ci-name';
+      const ns=document.createElement('span'); ns.textContent=item.name; nm.appendChild(ns);
+      if(hasFridge){ const w=document.createElement('span'); w.className='ci-fridge-warn'; w.textContent='🧊 冷蔵庫にあり'; nm.appendChild(w); }
+      const pr=document.createElement('div'); pr.className='ci-price'; pr.textContent=yen(priceOf(item.name));
+      const del=document.createElement('div'); del.className='ci-del'; del.textContent='×';
+      del.onclick=function(){ cart=cart.filter(c=>c!==item); saveCart(); renderPanel(); renderCart(); renderTotals(); };
+      row.append(chk,nm,pr,del); group.appendChild(row);
+    });
+    body.appendChild(group);
+  });
+}
+
+/* ============ MOVE BOUGHT TO HISTORY ============ */
+function moveBoughtToHistory(){
+  const boughtItems=cart.filter(c=>c.bought);
+  if(boughtItems.length===0){ toast('「買った」にチェックを入れてね'); return; }
+  const now=Date.now();
+  boughtItems.forEach(function(c){
+    history.push({ id:'h'+now.toString(36)+Math.random().toString(36).slice(2,7), name:c.name, catId:c.catId, midName:c.midName, price:priceOf(c.name), purchaseMs:now, shelfDays:shelfOf(c.name), used:false, usedMs:null });
+  });
+  cart=cart.filter(c=>!c.bought);
+  saveCart(); saveHistory();
+  renderPanel(); renderCart(); renderTotals(); renderTabs();
+  toast(boughtItems.length+'点を購入履歴へ移動しました 🧾');
+}
+
+/* ============ CART CONTROLS ============ */
+document.getElementById('cartHandle').onclick=function(){ document.getElementById('cart').classList.toggle('collapsed'); };
+document.getElementById('toHistory').onclick=moveBoughtToHistory;
+document.getElementById('clearAll').onclick=function(){
+  if(cart.length===0) return;
+  openConfirm('🧺 カゴを空にする？','入れたものが全部消えちゃうよ。<br>ほんとうに大丈夫？','ぜんぶ消す',function(){ cart=[]; saveCart(); renderPanel(); renderCart(); renderTotals(); });
+};
+
+/* ============ CONFIRM ============ */
+const confirmBg=document.getElementById('confirmBg'); let confirmCb=null;
+function openConfirm(title,msg,okLabel,cb){
+  document.getElementById('cfTitle').innerHTML=title;
+  document.getElementById('cfMsg').innerHTML=msg;
+  document.getElementById('cfOk').textContent=okLabel||'OK';
+  confirmCb=cb; confirmBg.classList.add('show');
+}
+document.getElementById('cfCancel').onclick=function(){ confirmBg.classList.remove('show'); };
+confirmBg.onclick=function(e){ if(e.target===confirmBg) confirmBg.classList.remove('show'); };
+document.getElementById('cfOk').onclick=function(){ if(confirmCb) confirmCb(); confirmBg.classList.remove('show'); };
+
+/* ============ ADD MODAL ============ */
+const modalBg=document.getElementById('modalBg'); const saveToggle=document.getElementById('saveToggle');
+function openModal(){
+  const sel=document.getElementById('mCat'); sel.innerHTML='';
+  CATEGORIES.forEach(function(c){ c.mids.forEach(function(m){
+    const o=document.createElement('option'); o.value=c.id+'|'+m.name; o.textContent=c.emoji+' '+c.name+' › '+m.name;
+    if(typeof activeTab==='number' && c.id===CATEGORIES[activeTab].id) o.selected=true; sel.appendChild(o);
+  }); });
+  document.getElementById('mName').value=''; document.getElementById('mPrice').value=''; document.getElementById('mShelf').value='';
+  saveNext=false; saveToggle.classList.remove('on');
+  modalBg.classList.add('show');
+  setTimeout(()=>document.getElementById('mName').focus(),100);
+}
+document.getElementById('fab').onclick=openModal;
+document.getElementById('mCancel').onclick=function(){ modalBg.classList.remove('show'); };
+modalBg.onclick=function(e){ if(e.target===modalBg) modalBg.classList.remove('show'); };
+saveToggle.onclick=function(){ saveNext=!saveNext; saveToggle.classList.toggle('on',saveNext); };
+document.getElementById('mOk').onclick=function(){
+  const name=document.getElementById('mName').value.trim();
+  if(!name){ document.getElementById('mName').focus(); return; }
+  let price=parseInt(document.getElementById('mPrice').value,10); if(isNaN(price)||price<0) price=0;
+  const shelfRaw=document.getElementById('mShelf').value.trim();
+  const parts=document.getElementById('mCat').value.split('|'); const catId=parts[0], midName=parts[1];
+  priceEdits[name]=price;
+  if(shelfRaw!==''){ let sv=parseInt(shelfRaw,10); if(isNaN(sv)||sv<0)sv=0; shelfEdits[name]=sv; }
+  rebuildMaps(); savePrices(); saveShelf();
+  if(!inCart(name)) cart.push({name:name,catId:catId,midName:midName,bought:false});
+  if(saveNext && !customPresets.some(p=>p.name===name && p.catId===catId)){ customPresets.push({catId:catId,midName:midName,name:name}); saveCustom(); }
+  saveCart(); modalBg.classList.remove('show');
+  renderPanel(); renderCart(); renderTotals(); renderTabs();
+  document.getElementById('cart').classList.remove('collapsed');
+};
+
+/* ============ INIT ============ */
+(async function(){
+  await load();
+  renderTabs(); renderPanel(); renderCart(); renderTotals();
+})();
+</script>
+</body>
+</html>
